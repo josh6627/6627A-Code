@@ -11,172 +11,52 @@
 // Robot Configuration:
 // [Name]               [Type]        [Port(s)]
 // Controller1          controller                    
-// FR                   motor         3               
-// BR                   motor         4               
-// FL                   motor         9               
-// BL                   motor         2               
-// Lift                 motor         14              
-// Hook                 motor         10              
-// Lift2                motor         15              
-// Tilter               motor         18              
-// IS                   inertial      19              
+// FR                   motor         11              
+// BR                   motor         7               
+// FL                   motor         13              
+// BL                   motor         14              
+// Mogo                 motor         12              
+// Ring                 motor         5               
+// LeftLift             motor         10              
+// RightLift            motor         8               
 // ---- END VEXCODE CONFIGURED DEVICES ----
 
 #include "vex.h"
+#include <cmath> // allows (std::abs)
 
 using namespace vex;
 
 // A global instance of competition
 competition Competition;
 
-//FOR THE GOOGLE DOC
-/*
-// VEXcode device constructors
-controller Controller1 = controller(primary);
-motor FR = motor(PORT3, ratio18_1, true);
-motor BR = motor(PORT4, ratio18_1, true);
-motor FL = motor(PORT9, ratio18_1, false);
-motor BL = motor(PORT2, ratio18_1, false);
-motor Lift = motor(PORT14, ratio36_1, false);
-motor Hook = motor(PORT10, ratio18_1, false);
-motor Lift2 = motor(PORT15, ratio36_1, true);
-motor Tilter = motor(PORT18, ratio18_1, false);
-inertial IS = inertial(PORT19);
-*/
-//FOR THE GOOGLE DOC^
-
-
-// define your global instances of motors and other devices here
-
-
-//Autonomous Code Global Statements
-
-//brakes drive in either hold or coast. Ex. brake_drive();
-void brake_drive() {
-  FR.setStopping(hold);
-  BR.setStopping(hold);
-  FL.setStopping(hold);
-  BL.setStopping(hold);}
-
-void coast_drive() {
-  FR.setStopping(coast);
-  BR.setStopping(coast);
-  FL.setStopping(coast);
-  BL.setStopping(coast);}
-
-//sets velocity using the interger vel. Ex. velocity_set(100);
-void velocity_set(int vel) {
-  FL.setVelocity(vel, percent);
-  BL.setVelocity(vel,percent);
-  FR.setVelocity(vel, percent);
-  BR.setVelocity(vel,percent);}
 
 
 
-                //These Autonomous Global Statements use the internal motor's encoders to run
-        //Uses the rotateFor command, which makes the robot move for a specific amount of deg or rev
-        //Uses boolean statements (true or false) to decide whether the code will run the next line immediately or wait for the line to finish
 
 
-//Ex. move_drive(360, 50, true);
-//move forward statement (moves in degrees)
-void move_drive(int pos, int speed, bool stopping) {
-  FR.rotateFor(pos, rotationUnits::deg, speed, velocityUnits::pct, false);
-  BR.rotateFor(pos, rotationUnits::deg, speed, velocityUnits::pct, false);
-  FL.rotateFor(pos, rotationUnits::deg, speed, velocityUnits::pct, false);
-  BL.rotateFor(pos, rotationUnits::deg, speed, velocityUnits::pct, stopping);
-  }
-
-//turn right statement (moves in degrees)
-void turn_right(int pos, int speed, bool stopping) {
-  FR.rotateFor(-pos, rotationUnits::deg, speed, velocityUnits::pct, false);
-  BR.rotateFor(-pos, rotationUnits::deg, speed, velocityUnits::pct, false);
-  FL.rotateFor(pos, rotationUnits::deg, speed, velocityUnits::pct, false);
-  BL.rotateFor(pos, rotationUnits::deg, speed, velocityUnits::pct, stopping);
-}
-
-//turn left statement (moves in degrees)
-void turn_left(int pos, int speed, bool stopping) {
-  FR.rotateFor(pos, rotationUnits::deg, speed, velocityUnits::pct, false);
-  BR.rotateFor(pos, rotationUnits::deg, speed, velocityUnits::pct, false);
-  FL.rotateFor(-pos, rotationUnits::deg, speed, velocityUnits::pct, false);
-  BL.rotateFor(-pos, rotationUnits::deg, speed, velocityUnits::pct, stopping);
-}
-
-//move hook statement (moves in degrees)
-void move_hook(int pos, int speed, bool stopping) {
-  Hook.rotateFor(pos, rotationUnits::deg, speed, velocityUnits::pct, stopping);
-}
-
-//moves tilter (moves in degrees)
-void move_tilter(int pos, int speed, bool stopping) {
-  Tilter.rotateFor(pos, rotationUnits::deg, speed, velocityUnits::pct, stopping);
-}
+///////////////////////
+//    Brake Types   //
+/////////////////////
 
 
-//moves lift (moves in degrees) (note the first line is false because the lift uses 2 motors)
-void move_lift(int pos, int speed, bool stopping) {
-  Lift.rotateFor(pos, rotationUnits::deg, speed, velocityUnits::pct, false);
-  Lift2.rotateFor(pos, rotationUnits::deg, speed, velocityUnits::pct, stopping);
+//brakes drive in either hold or coast
+void set_hold() {
+  FR.setStopping(hold); BR.setStopping(hold); FL.setStopping(hold); BL.setStopping(hold); }
 
-}
+void set_coast() {
+  FR.setStopping(coast); BR.setStopping(coast); FL.setStopping(coast); BL.setStopping(coast); }
 
+void coast_drive(){
+FR.stop(coast); BR.stop(coast); FL.stop(coast); BL.stop(coast); }
 
-//function that grabs the neutral left mogo
-void grab_NLmogo(){
-//moves hook and drives to nlmogo
-  move_hook(720, 100, false);
-  move_drive(990, 65, true);
-    wait(50, msec);
-  move_hook(-410, 80, false);
-//nlmogo grabbed
-}
+void brake_drive(){
+FR.stop(hold); BR.stop(hold); FL.stop(hold); BL.stop(hold); }
 
-//function that take the neutral left mogo back to the alliance home zone
-void NLmogo_ahz(){
-  move_drive(120, 20, true);
-  move_drive(-600, 65, true);
-    wait(100, msec);
-//nlmogo brought back to ahz
-}
-
-//function that grabs the neutral middle mogo
-void grab_NMmogo(){
-//turn left with the mogo in the claw to align with the middle mogo
-  turn_left(410, 50, true);
-//let go of the mogo
-  move_hook(410, 100, false);   
-  move_tilter(-950, 100, false);
-//move the drive reversed to the middle mogo
-  move_drive(-700, 50, true);
-    wait(100, msec);
-  move_drive(-225, 25, true);
-  turn_left(55, 50, false);
-//move the tilter up with the middle mogo hooked
-  move_tilter(975, 100, true);
-    wait(100, msec);
-}
-
-//function that takes the neutral middle mogo to the alliance home zome
-void NMmogo_ahz(){
-//move the drive forward with the middle mogo
-  move_drive(1250, 45, true);
-}
-
-
-                //reset sensors so they are more accurate
-    //reset sensors once in pre auton and once in the beginning of auton
-//Ex. reset_rotation();
 void reset_rotation() {
-  FR.resetRotation();
-  BR.resetRotation();
-  FL.resetRotation();
-  BL.resetRotation();
-  Tilter.resetRotation();
-  Hook.resetRotation();
-  Lift.resetRotation();
-  Lift2.resetRotation();
-}
+  FR.resetRotation(); BR.resetRotation(); FL.resetRotation(); BL.resetRotation(); Claw.close(); LeftLift.resetRotation(); RightLift.resetRotation(); }
+
+void set_position(int pos){
+  FR.setPosition(pos, deg); BR.setPosition(pos, deg); FL.setPosition(pos, deg); BL.setPosition(pos, deg); }
 
 
 
@@ -189,65 +69,46 @@ void reset_rotation() {
 
 
 
-//Driver Code Global Satements
-
-                //Globals
-      //Sets the constant intergers for the hook and tilter which tell the motor what degree to turn too when you click the button 
-      //(See driver control code for the hook and tilter code)
-      //change these by changing the number
-          //NOTE: the hook starts fully withdrawn and the tilter starts fully retracted (this is when the motors will read 0 degrees and you should base the degrees off that)
-const int HOOK_OUT = 700; //determines how far the hook will go to hook onto a mogo
-const int HOOK_IN  = 300; //determines how far the hook will retract when not trying to hook a mogo        
-
-const int TILTER_OUT = -1200; //determines how far the tilter will go to hook onto a mogo
-const int TILTER_IN  = 10; //determines how far the tilter will retract when not trying to hook a mogo
+     ////////////////////////////////////////////
+    //                                        //
+   //                                        //
+  //    Driver Control Global Statements    //
+ //                                        //
+//                                        //
+///////////////////////////////////////////
 
 
 
+////////////////////////////
+//    Mogo Statements    //
+//////////////////////////
 
-//Motor Functions
+const int MOGO_OUT = 280;
+const int MOGO_IN = 0;
 
-
-        //Reverse Arcade Drive (the left and right joysticks are switched)
-    //Ex. set_revarcade();
-void set_revarcade() {
-  FL.spin(forward, (Controller1.Axis2.value() + Controller1.Axis4.value()), percent);
-  FR.spin(forward, (Controller1.Axis2.value() - Controller1.Axis4.value()), percent);
-  BL.spin(forward, (Controller1.Axis2.value() + Controller1.Axis4.value()), percent);
-  BR.spin(forward, (Controller1.Axis2.value() - Controller1.Axis4.value()), percent);
-}
-
-
-
-
-          //Hook Motor Functions
-void set_hook_position  (int pos, int speed)  {Hook.  startRotateTo(pos, rotationUnits::deg, speed, velocityUnits::pct); } 
-//uses pos (degrees) and speed (percent)
-
-
-
-          //Tilter Motor Functions
-void set_tilter_position  (int pos, int speed)  {Tilter.  startRotateTo(pos, rotationUnits::deg, speed, velocityUnits::pct); } 
+          //Mogo Motor Functions
+void set_mogo_position  (int pos, int speed)  {Mogo.  startRotateTo(pos, rotationUnits::deg, speed, velocityUnits::pct); } 
 //uses pos (degrees) and speed (percent)
 
 
 
 
-          //Lift Motor Functions
-//defines the speed of the Lift Intake and whether the Ring goes in forward or reverse
-void lift() {
-  Lift.spin(directionType::fwd, 65, percentUnits::pct); 
-  Lift2.spin(directionType::fwd, 65,percentUnits::pct);}
+
+
+////////////////////////////
+//    Ring Statements    //
+//////////////////////////
+
+void ring() { //85.416667  .91666667
+  Ring.spin(directionType::fwd, 11, voltageUnits::volt);}
 //change the number to alter the speed of the lift when going up (both numbers must be the same!!!)
 
-void liftrev() {
-  Lift.spin(directionType::rev, 65, percentUnits::pct);
-  Lift2.spin(directionType::rev, 65,percentUnits::pct);}
+void ringRev() {
+  Ring.spin(directionType::rev, 11, voltageUnits::volt);}
 //change the number to alter the speed of the lift when going down (both numbers must be the same!!!)
 
-void liftbrake() {
-  Lift.stop(brakeType::hold);
-  Lift2.stop(brakeType::hold);}
+void ringBrake() {
+  Ring.stop(brakeType::hold);}
 //Lift brake types (hold,coast,brake)
 
 
@@ -259,159 +120,479 @@ void liftbrake() {
 
 
 
-/*---------------------------------------------------------------------------*/
-/*                          Pre-Autonomous Functions                         */
-/*                                                                           */
-/*  You may want to perform some actions before the competition starts.      */
-/*  Do them in the following function.  You must return from this function   */
-/*  or the autonomous and usercontrol tasks will not be started.  This       */
-/*  function is only called once after the V5 has been powered on and        */
-/*  not every time that the robot is disabled.                               */
-/*---------------------------------------------------------------------------*/
+
+
+     ////////////////////////////////////////
+    //                                    //
+   //                                    //
+  //    Autonomous Global Statements    //
+ //                                    //
+//                                    //
+///////////////////////////////////////
+void move_drive(int pos, int speed, bool stopping) {
+  FR.rotateFor(pos, rotationUnits::deg, speed, velocityUnits::pct, false);
+  BR.rotateFor(pos, rotationUnits::deg, speed, velocityUnits::pct, false);
+  FL.rotateFor(pos, rotationUnits::deg, speed, velocityUnits::pct, false);
+  BL.rotateFor(pos, rotationUnits::deg, speed, velocityUnits::pct, stopping);
+}
+
+
+
+//moves mogo (moves in degrees)
+void move_mogo(int pos, int speed, bool stopping) {
+  Mogo.rotateFor(pos, rotationUnits::deg, speed, velocityUnits::pct, stopping);
+}
+
+
+
+//rotates the ring intake
+void move_ring(int pos, int speed, bool stopping) {
+  Ring.rotateFor(pos, rotationUnits::deg, speed, velocityUnits::pct, stopping);
+}
+
+
+
+
+
+
+///////////////////////////////
+//    PD Linear Movement    //
+/////////////////////////////
+
+void move_drive(double target, int speed){
+
+set_position(0); // ^ zeros the Motors
+
+double kp = 0; //speed control (error) 
+double kd = 0; //makes sure that the speed is not too fast or too slow
+// ^ constants
+
+
+int error; //error (target - average position)
+int prevError; //the error from the previous loop
+
+int proportion; //error
+int derivative; //error minus previous error (speed)  
+
+int rawPow; //power calculated from summing the PID and their corresponding constants
+int curDeg = (((FL.position(degrees) + FR.position(degrees))/2)); //average position between FL and FR
+double curPos = curDeg * 0.047269;
+int volts = (speed*.12); //converts the speed into voltage (0-12)
+
+int sign; //sign (1 or -1) error/abs(error)
+
+int DELAY_TIME = 10;
+int velTimer;
+int errorTimer;
+int Lvel = FL.velocity(pct);
+int Rvel = FR.velocity(pct);
+
+
+while(1){
+
+error = curPos - target;
+
+//PD calculations using the average position of the motors
+  proportion = error;
+  derivative = (error - prevError);
+    rawPow = proportion *kp + derivative *kd;
+
+
+
+      sign = error / abs(int(error)); //calulates the sign of error (1 or -1)
+
+if (abs(rawPow) >= abs(volts)){ // if the rawPower is greater than the desired speed, the rawPower equals the desired speed in volts times the sign of the error
+  rawPow = volts*sign;
+}
+
+
+/*
+if(abs(error) <= 4){
+    errorTimer +=DELAY_TIME;
+  if (errorTimer > 60){
+    errorTimer = 0;
+    break;
+  }
+}
+  else{
+    errorTimer = 0;
+  }
+
+
+if(Lvel == 0 && Rvel == 0){ //breaks the loop if the error is less than 4
+    velTimer += DELAY_TIME;
+  if (velTimer > 200) {
+    velTimer = 0;
+    break;
+  }
+}
+else {
+  velTimer = 0;
+}
+
+*/
+
+//sets motors to move with the rawPower calculated from the PID controller
+FL.spin(fwd, rawPow, vex::voltageUnits::volt);
+FR.spin(fwd, rawPow, vex::voltageUnits::volt);
+BL.spin(fwd, rawPow, vex::voltageUnits::volt);
+BR.spin(fwd, rawPow, vex::voltageUnits::volt);
+
+  prevError = error;
+    wait(DELAY_TIME,msec); // waits 10 msec before repeating the while loop
+} 
+
+
+brake_drive();
+  wait(20,msec);  //waits 20msec before going to the next line of code
+}
+
+
+
+
+
+
+/////////////////////////////////////
+//    PID for Turning Movement    //
+///////////////////////////////////
+
+//p-loop for the inertial sensor
+//sum two values
+void turn_drive(int turnTarget, int speed, int turnType){
+
+set_position(0); // ^ zeros the Motors and the Inertial Sensor
+
+double kp = 0; //speed control (error) 
+double ki = 0; //increase precision with error left over from kp 
+double kd = 0; //makes sure that the speed is not too fast or too slow
+// ^ constants (increase the kp until error is small, then increase kd until overshoot is minimal, increase ki until error is gone)
+
+int error; //error (target - the actual values)
+int prevError; //error from the previous loop
+
+int proportion; //error
+int integral = 0.0; //total error
+int derivative; //error minus previous error (speed)
+
+int curDeg = IMU.rotation(degrees);
+int volts = (speed*.12); //converts the set speed above into an interger to volts (100 *.12 = 12)
+  //voltageUnits::volts goes from 0-12 volts, 12 being the maximum voltage
+int rawPow; //power calculated from summing the PID and their corresponding constants
+int leftPower; //rawPow added with the difference between FL and FR
+int rightPower; //rawPow subtracted with the difference between FL and FR
+int sign; //interger that can only be 1 or -1 (used for the speed cap)
+
+int DELAY_TIME = 10;
+int velTimer;
+int errorTimer;
+int Lvel = FL.velocity(pct);
+int Rvel = FR.velocity(pct);
+
+while(1){ //while loop, this will continue to run until the specific parameters are met to break the loop
+
+
+
+error = turnTarget - curDeg; //might have to be (actual - target) if it continues to turn after desired target
+
+  proportion = error;
+  integral += error;
+  derivative = (error - prevError);
+    rawPow = proportion *kp + integral *ki + derivative *kd;
+
+
+
+  sign = error/abs(int(error)); //calulates the sign of error (1 or -1)
+
+if(abs(rawPow)>=abs(volts)){ // if the left power is greater than the desired speed, the left power equals the desired speed in volts times the sign of the error
+  rawPow = volts*sign; // power left side = speed times sign of the error (direction)
+}
+
+
+
+if (turnType == 0){ //turn
+    leftPower = -rawPow;
+    rightPower = rawPow;
+}
+
+if (turnType == 1){ //left swing
+    leftPower = 0;
+    rightPower = rawPow;
+}
+
+if (turnType == 2){ //right swing
+    leftPower = rawPow;
+    rightPower = 0;
+}
+
+
+/*
+if(abs(error) <= 4){ //breaks the loop if the error is less than 4 for more than 60 msec
+    errorTimer +=DELAY_TIME;
+  if (errorTimer > 60){
+    errorTimer = 0;
+    break;
+  }
+}
+  else{
+    errorTimer = 0;
+  }
+
+
+if(Lvel == 0 && Rvel == 0){ //breaks the loop if the velocity is 0 for more than 200 msec
+    velTimer += DELAY_TIME;
+  if (velTimer > 200) {
+    velTimer = 0;
+    break;
+  }
+}
+else {
+  velTimer = 0;
+}
+*/
+
+
+//sets motors to move with their corresponding powers
+FL.spin(fwd, leftPower, vex::voltageUnits::volt);
+FR.spin(fwd, rightPower, vex::voltageUnits::volt);
+BL.spin(fwd, leftPower, vex::voltageUnits::volt);
+BR.spin(fwd, rightPower, vex::voltageUnits::volt);
+
+  prevError = error; 
+    wait(DELAY_TIME,msec); // waits 10msec before repeating the while loop
+} 
+
+
+
+//coasts the motors when while loop broken
+brake_drive();
+  wait(20,msec); //waits 20msec before going to the next line of code
+}
+
+
+
+
+
+
+
+
+
+
+
+
+     ////////////////////////////////////////////
+    //                                        //
+   //                                        //
+  //        Pre-Autonomous Functions        //
+ //                                        //
+//                                        //
+///////////////////////////////////////////
 
 void pre_auton(void) {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
-  
-  // All activities that occur before the competition starts
-  // Example: clearing encoders, setting servo positions, ...
-  reset_rotation();
-    wait(200, msec);
-  
+
+    IMU.calibrate();
+    reset_rotation();
+      wait(2250, msec);
+
 }
 
-/*---------------------------------------------------------------------------*/
-/*                                                                           */
-/*                              Autonomous Task                              */
-/*                                                                           */
-/*  This task is used to control your robot during the autonomous phase of   */
-/*  a VEX Competition.                                                       */
-/*                                                                           */
-/*  You must modify the code to add your own robot specific commands here.   */
-/*---------------------------------------------------------------------------*/
+
+
+
+
+
+
+     ////////////////////////////////////////////
+    //                                        //
+   //                                        //
+  //             Autonomous Task            //
+ //                                        //
+//                                        //
+///////////////////////////////////////////
 
 void autonomous(void) {
-  // ..........................................................................
-  // Insert autonomous user code here.
-  // ..........................................................................
-  reset_rotation();
-
-//first number is degrees and second is the speed
-
-  grab_NLmogo();
-  NLmogo_ahz();
-  grab_NMmogo();
-  NMmogo_ahz();
+    reset_rotation();
 
 
-  coast_drive();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+    Claw.open();
+  move_ring(100, 50, false);
+move_drive(-950, 65, true);
+    turn_left(15, 40, true);
+  move_drive(-125, 30, true);
+  move_drive(550, 40, false);
+    Claw.close();
+  
+  turn_left(50, 30, true);
+move_drive(550, 40, true);
+//  move_lift(500, 80, true);
+
+///////////////////////
+move_drive(200, 20, true);
+    turn_right(150, 20, true);
+      move_mogo(515, 100, true);
+  move_drive(225, 40, true);
+      move_mogo(-515, 75, true);
+      move_ring(1250, 100, true);
+*/
+
+
+
+
 }
 
-/*---------------------------------------------------------------------------*/
-/*                                                                           */
-/*                              User Control Task                            */
-/*                                                                           */
-/*  This task is used to control your robot during the user control phase of */
-/*  a VEX Competition.                                                       */
-/*                                                                           */
-/*  You must modify the code to add your own robot specific commands here.   */
-/*---------------------------------------------------------------------------*/
+
+
+
+
+
+
+     ////////////////////////////////////////////
+    //                                        //
+   //                                        //
+  //             Driver Control             //
+ //                                        //
+//                                        //
+///////////////////////////////////////////
 
 void usercontrol(void) {
 
-bool hook_up  =true;
-int hook_lock      = 0;
 
-bool tilter_up  =false;
-int tilter_lock      = 0;
+/////////////////////
+//    Settings    //
+///////////////////
+
+bool mogo_up = false;
+int mogo_lock = 0;
+
+bool claw_up = true;
+int claw_lock = 0;
+
+bool rev_drive = false;
+int rev_lock = 0;
+
+double turnImportance = 0.5;
 
 
-  // User control code here, inside the loop
   while (1) {
 
-//sets drive to coast
-  coast_drive();
+set_coast();
+
+    
+/////////////////////////////////
+//    Arcade Drive in Volts   //
+///////////////////////////////
+
+double turnPct = Controller1.Axis4.position();
+double forwardPct = Controller1.Axis2.position();
+
+double turnVolts = turnPct * 0.12;
+double forwardVolts = forwardPct * 0.12 * (1 - (std::abs(turnVolts)/12.0) * turnImportance);
 
 
-//main reverse arcade drive code
-  set_revarcade();
+  if (Controller1.ButtonB.pressing() && rev_lock==0){
+    rev_drive = !rev_drive;
+    rev_lock = 1;}
 
+    else if (!Controller1.ButtonB.pressing()){
+      rev_lock = 0;}
 
-
-
-
-
-
-//Lift code
-//refers to lift global statements
-  if(Controller1.ButtonL1.pressing()){
-    lift();}
-
-  else if(Controller1.ButtonL2.pressing()){
-    liftrev();}
-
-  else{
-    liftbrake();}
-
-
-
-
-
-
-
-//Hook
-//two positions up and perfect grab for locking onto mogos
-  if (Controller1.ButtonR1.pressing() && hook_lock==0) {
-    hook_up = !hook_up;
-    hook_lock = 1;}
-
-  else if (!Controller1.ButtonR1.pressing()) {
-    hook_lock = 0;}
-
-
-  if (hook_up)
-    set_hook_position(HOOK_OUT, 100); //sets speed of the hook when going out
-
-  else
-    set_hook_position(HOOK_IN, 100); //sets speed of the hook when going back in
-
-
-
-
-
-
-
-//Tilter Code
-//two positions up and perfect grab for locking onto mogos
-  if (Controller1.ButtonR2.pressing() && tilter_lock==0) {
-    tilter_up = !tilter_up;
-    tilter_lock = 1;}
-
-  else if (!Controller1.ButtonR2.pressing()) {
-    tilter_lock = 0;}
-
-
-  if (tilter_up)
-    set_tilter_position(TILTER_OUT, 100); //sets speed of the tilter when going out
-
-  else
-    set_tilter_position(TILTER_IN, 100); //sets speed of the tilter when going back in
-
-
-
-
-
-
-
+        if (rev_drive){
+FR.spin(reverse, forwardVolts - turnVolts, voltageUnits::volt);
+FL.spin(reverse, forwardVolts + turnVolts, voltageUnits::volt);
+BR.spin(reverse, forwardVolts - turnVolts, voltageUnits::volt);
+BL.spin(reverse, forwardVolts + turnVolts, voltageUnits::volt);
 }
-    // This is the main execution loop for the user control program.
-    // Each time through the loop your program should update motor + servo
-    // values based on feedback from the joysticks.
 
-    // ........................................................................
-    // Insert user code here. This is where you use the joystick values to
-    // update your motors, etc.
-    // ........................................................................
+        else{
+FR.spin(forward, forwardVolts + turnVolts, voltageUnits::volt);
+FL.spin(forward, forwardVolts - turnVolts, voltageUnits::volt);
+BR.spin(forward, forwardVolts + turnVolts, voltageUnits::volt);
+BL.spin(forward, forwardVolts - turnVolts, voltageUnits::volt);
+}
+
+
+
+////////////////////////
+//    Ring Intake    //
+//////////////////////
+
+  if(Controller1.ButtonL1.pressing()){
+    ring();
+}
+
+    else if(Controller1.ButtonL2.pressing()){
+      ringRev();
+}
+
+      else{
+        ringBrake();
+}
+
+
+
+
+
+
+///////////////////////////////
+//    Mobile Goal Intake    //
+/////////////////////////////
+
+if (Controller1.ButtonR2.pressing() && mogo_lock==0){
+  mogo_up = !mogo_up;
+  mogo_lock = 1;}
+
+  else if (!Controller1.ButtonR2.pressing()){
+    mogo_lock = 0;}
+
+      if (mogo_up)
+        set_mogo_position(MOGO_OUT, 80);
+
+      else
+        set_mogo_position(MOGO_IN, 80);
+
+
+
+
+
+
+/////////////////
+//    Claw    //
+///////////////
+
+if (Controller1.ButtonR1.pressing() && claw_lock==0){
+  claw_up = !claw_up;
+  claw_lock = 1;}
+
+  else if (!Controller1.ButtonR1.pressing()){
+    claw_lock = 0;}
+
+    if(claw_up)
+      Claw.close();
+
+    else
+      Claw.open();
+
+
+
+
 
 
 
@@ -423,7 +604,7 @@ int tilter_lock      = 0;
     wait(20, msec); // Sleep the task for a short amount of time to
                     // prevent wasted resources.
   }
-
+}
 
 //
 // Main will set up the competition functions and callbacks.
