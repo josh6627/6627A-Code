@@ -266,8 +266,8 @@ void usercontrol(void) {
 bool mogo_up = false;
 int mogo_lock = 0;
 
-bool claw_up = true;
-int claw_lock = 0;
+bool claw_up = true; //claw will start in the close position (because the piston pushes out to claw we want the claw to start closed)
+int claw_lock = 0; //starts strue because we want our if statement to be able to run lol
 
 bool rev_drive = false;
 int rev_lock = 0;
@@ -362,16 +362,20 @@ if (Controller1.ButtonR2.pressing() && mogo_lock==0){
 ///////////////
 
 if (Controller1.ButtonR1.pressing() && claw_lock==0){
-  claw_up = !claw_up;
-  claw_lock = 1;}
+  claw_up = !claw_up; // flips the claw_up from true to false   or   false to true
+  
+  claw_lock = 1;} // claw_lock does not effect the motor
+    //it is used to make sure that the above if statement runs just once 
+    // (if you hold the button and dont have the lock, the if statement will run multiple times
+        //causing claw up to continiously flip between true or false.
 
-  else if (!Controller1.ButtonR1.pressing()){
+  else if (!Controller1.ButtonR1.pressing()){ //if R1 is not being pressed, set claw lock to 0 so the if statement can run again
     claw_lock = 0;}
 
-    if(claw_up)
+    if(claw_up) //if claw_up is true, close the pneumatic piston on the claw
       Claw.close();
 
-    else
+    else //if claw_up is false, open the pneumatic piston on the claw
       Claw.open();
 
 
