@@ -101,15 +101,15 @@ void set_mogo_position  (int pos, int speed)  {Mogo.  startRotateTo(pos, rotatio
 
 void ring() { //85.416667  .91666667
   Ring.spin(directionType::fwd, 11, voltageUnits::volt);}
-//change the number to alter the speed of the lift when going up (both numbers must be the same!!!)
+//change the number to alter the speed of the ring intake when moving forward
 
 void ringRev() {
   Ring.spin(directionType::rev, 11, voltageUnits::volt);}
-//change the number to alter the speed of the lift when going down (both numbers must be the same!!!)
+//change the number to alter the speed of the ring intake when reversed
 
 void ringBrake() {
-  Ring.stop(brakeType::hold);}
-//Lift brake types (hold,coast,brake)
+  Ring.stop(brakeType::coast);}
+//Ring brake types (Uses coast but could use hold too)
 
 
 
@@ -135,6 +135,9 @@ void move_drive(int pos, int speed, bool stopping) {
   FL.rotateFor(pos, rotationUnits::deg, speed, velocityUnits::pct, false);
   BL.rotateFor(pos, rotationUnits::deg, speed, velocityUnits::pct, stopping);
 }
+// sets the drive motors spin for a certain amount of speeed (defined with 'pos'
+// sets a certain speed (defined with 'speed')
+// With 'stopping' determines whether you want the statement to be blocking or not (next line of code will run if set to false)
 
 
 
@@ -142,7 +145,7 @@ void move_drive(int pos, int speed, bool stopping) {
 void move_mogo(int pos, int speed, bool stopping) {
   Mogo.rotateFor(pos, rotationUnits::deg, speed, velocityUnits::pct, stopping);
 }
-
+// same logic as move_drive but with the ring motor
 
 
 //rotates the ring intake
@@ -150,7 +153,7 @@ void move_ring(int pos, int speed, bool stopping) {
   Ring.rotateFor(pos, rotationUnits::deg, speed, velocityUnits::pct, stopping);
 }
 
-
+//ditto
 
 
 
@@ -175,8 +178,8 @@ void pre_auton(void) {
   // Initializing Robot Configuration. DO NOT REMOVE!
   vexcodeInit();
 
-    IMU.calibrate();
-    reset_rotation();
+    IMU.calibrate(); //calibrates the IMU sensor to reset the rotation
+    reset_rotation(); //resets all motors
       wait(2250, msec);
 
 }
@@ -196,26 +199,10 @@ void pre_auton(void) {
 ///////////////////////////////////////////
 
 void autonomous(void) {
-    reset_rotation();
+    reset_rotation(); // reset motors again (failsafe)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
+  
     Claw.open();
   move_ring(100, 50, false);
 move_drive(-950, 65, true);
@@ -235,7 +222,7 @@ move_drive(200, 20, true);
   move_drive(225, 40, true);
       move_mogo(-515, 75, true);
       move_ring(1250, 100, true);
-*/
+
 
 
 
@@ -265,10 +252,11 @@ void usercontrol(void) {
 
 bool mogo_up = false;
 int mogo_lock = 0;
+//mogo statements 
 
-bool claw_up = true; //claw will start in the close position (because the piston pushes out to claw we want the claw to start closed)
-int claw_lock = 0; //starts strue because we want our if statement to be able to run lol
-
+bool claw_up = true; 
+int claw_lock = 0; 
+  
 bool rev_drive = false;
 int rev_lock = 0;
 
@@ -279,6 +267,10 @@ double turnImportance = 0.5;
 
 set_coast();
 
+
+    
+    
+    
     
 /////////////////////////////////
 //    Arcade Drive in Volts   //
@@ -287,8 +279,8 @@ set_coast();
 double turnPct = Controller1.Axis4.position();
 double forwardPct = Controller1.Axis2.position();
 
-double turnVolts = turnPct * 0.12;
-double forwardVolts = forwardPct * 0.12 * (1 - (std::abs(turnVolts)/12.0) * turnImportance);
+double turnVolts = turnPct * 0.12; //sets the controller axis position from percent to voltage (voltage is out of 12)
+double forwardVolts = forwardPct * 0.12 * (1 - (std::abs(turnVolts)/12.0) * turnImportance); //multipled by turnImportance to have a less dramatic effect from turning while driving forward
 
 
   if (Controller1.ButtonB.pressing() && rev_lock==0){
@@ -312,52 +304,12 @@ BR.spin(forward, forwardVolts + turnVolts, voltageUnits::volt);
 BL.spin(forward, forwardVolts - turnVolts, voltageUnits::volt);
 }
 
+    
 
 
-////////////////////////
-//    Ring Intake    //
-//////////////////////
-
-  if(Controller1.ButtonL1.pressing()){
-    ring();
-}
-
-    else if(Controller1.ButtonL2.pressing()){
-      ringRev();
-}
-
-      else{
-        ringBrake();
-}
-
-
-
-
-
-
-///////////////////////////////
-//    Mobile Goal Intake    //
-/////////////////////////////
-
-if (Controller1.ButtonR2.pressing() && mogo_lock==0){
-  mogo_up = !mogo_up;
-  mogo_lock = 1;}
-
-  else if (!Controller1.ButtonR2.pressing()){
-    mogo_lock = 0;}
-
-      if (mogo_up)
-        set_mogo_position(MOGO_OUT, 80);
-
-      else
-        set_mogo_position(MOGO_IN, 80);
-
-
-
-
-
-
-/////////////////
+    
+    
+ /////////////////
 //    Claw    //
 ///////////////
 
@@ -377,9 +329,51 @@ if (Controller1.ButtonR1.pressing() && claw_lock==0){
 
     else //if claw_up is false, open the pneumatic piston on the claw
       Claw.open();
+    
+    
+    
+    
+    
+    
+////////////////////////
+//    Ring Intake    //
+//////////////////////
 
+   
+  if(Controller1.ButtonL1.pressing()){ //if L1 is pressing run the ring intake fwd
+    ring();
+}
+ 
+    else if(Controller1.ButtonL2.pressing()){ //if L2 is pressing run the ring intake rev
+      ringRev();
+}
 
+      else{ //if L2 && L1 not being pressed brake ring intake
+        ringBrake(); 
+}
 
+    
+    
+    
+    
+    
+///////////////////////////////
+//    Mobile Goal Intake    //
+/////////////////////////////
+
+    // same logic as Claw
+if (Controller1.ButtonR2.pressing() && mogo_lock==0){
+  mogo_up = !mogo_up;
+  mogo_lock = 1;}
+
+  else if (!Controller1.ButtonR2.pressing()){
+    mogo_lock = 0;}
+
+      if (mogo_up)
+        set_mogo_position(MOGO_OUT, 80);
+
+      else
+        set_mogo_position(MOGO_IN, 80);
 
 
 
